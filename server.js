@@ -194,6 +194,7 @@ app.post('/auth/register', registerLimiter, async function(req, res) {
 });
 
 app.post('/auth/login', loginLimiter, async function(req, res) {
+  console.log('로그인 시도 IP:', req.ip); // 
   try {
     var username = (req.body.username || '').trim();
     var password = (req.body.password || '').trim();
