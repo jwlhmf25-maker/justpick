@@ -360,7 +360,8 @@ function 드라마틱공개(winner, reasoning) {
         ? (winner === 'A' ? optionAInput.value.trim() : optionBInput.value.trim())
         : (winner === 'A' ? '이미지 A' : '이미지 B');
 
-      winnerBanner.textContent = '🎉 ' + winner + ' (' + label + ') 승리!';
+      var 결과문구 = ['골랐어!', '결정!', '이거야!'][Math.floor(Math.random() * 3)];
+      winnerBanner.textContent = '🎉 ' + winner + ' (' + label + ') ' + 결과문구;
       reasoningBox.textContent = reasoning;
       revealArea.classList.remove('hidden');
 
