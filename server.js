@@ -151,8 +151,8 @@ app.post('/auth/register', async function(req, res) {
     var password = (req.body.password || '').trim();
 
     if (!username || !password)  return res.status(400).json({ error: '아이디와 비밀번호를 입력해주세요.' });
-    if (username.length < 2)     return res.status(400).json({ error: '아이디는 2자 이상이어야 합니다.' });
-    if (password.length < 4)     return res.status(400).json({ error: '비밀번호는 4자 이상이어야 합니다.' });
+    if (username.length < 4)     return res.status(400).json({ error: '아이디는 4자 이상이어야 합니다.' });
+    if (password.length < 8)     return res.status(400).json({ error: '비밀번호는 8자 이상이어야 합니다.' });
 
     var users = await db읽기('users', USERS_FILE, []);
     if (users.find(function(u) { return u.username === username; }))

@@ -64,7 +64,7 @@ function 헤더업데이트(username) {
     /* 비로그인 상태 */
     headerAuth.innerHTML =
       '<a href="/login" class="btn-ghost">로그인</a>' +
-      '<a href="/login" class="btn-ghost-solid">회원가입</a>';
+      '<a href="/login?tab=register" class="btn-ghost-solid">회원가입</a>';
 
     /* 사이드바 숨김, 기존 레이아웃 유지 */
     sidebar.classList.add('hidden');
