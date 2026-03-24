@@ -195,6 +195,17 @@ body.logged-in .app-header {
   max-width: 600px;
 }
 
+/* 히스토리 빈 상태 */
+.history-empty {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.history-go-pick {
+  max-width: 280px;
+  margin: 16px auto 0;
+}
+
 /* ── 사용법 안내 ── */
 .how-to {
   display: flex;

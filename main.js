@@ -105,7 +105,13 @@ function 히스토리로드() {
     .then(function(res) { return res.ok ? res.json() : []; })
     .then(function(items) {
       if (!items.length) {
-        historyList.innerHTML = '<p class="feed-empty">아직 히스토리가 없어요. 골라줘! 를 눌러보세요!</p>';
+        historyList.innerHTML =
+          '<div class="history-empty">' +
+            '<p class="feed-empty">아직 히스토리가 없어요.</p>' +
+            '<button class="pick-btn history-go-pick">골라줘! 요청하러 가기</button>' +
+          '</div>';
+        var goPickBtn = historyList.querySelector('.history-go-pick');
+        if (goPickBtn) goPickBtn.addEventListener('click', function() { 메뉴전환('panel-pick'); });
         return;
       }
       historyList.innerHTML = items.map(피드카드HTML).join('');
