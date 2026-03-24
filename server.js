@@ -429,6 +429,47 @@ app.post('/api/pick', 로그인필요, function(req, res) {
     });
 });
 
+/* ── 텍스트 모드 AI 픽 (로그인 불필요) ── */
+app.post('/api/pick-text', async function(req, res) {
+  var apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: '서버에 ANTHROPIC_API_KEY가 설정되지 않았습니다.' });
+
+  var optionA = (req.body.optionA || '').trim().slice(0, 40);
+  var optionB = (req.body.optionB || '').trim().slice(0, 40);
+  var context = (req.body.context || '').trim().slice(0, 80);
+
+  if (!optionA || !optionB) return res.status(400).json({ error: '선택지를 입력해주세요.' });
+
+  var prompt =
+    '사용자가 두 가지 중 하나를 고르지 못하고 있어. 반드시 하나를 골라서 이유를 알려줘.\n' +
+    '선택지 A: ' + optionA + '\n' +
+    '선택지 B: ' + optionB + '\n' +
+    '상황: ' + (context || '없음') + '\n\n' +
+    '아래 형식으로만 한국어로 답해줘:\n' +
+    '선택: [A 또는 B]\n' +
+    '이유: [실질적이고 상황에 맞는 이유, 2문장 이내]';
+
+  try {
+    var apiRes = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type':      'application/json',
+        'x-api-key':         apiKey,
+        'anthropic-version': API_VERSION
+      },
+      body: JSON.stringify({
+        model:      'claude-haiku-4-5',
+        max_tokens: 300,
+        messages:   [{ role: 'user', content: prompt }]
+      })
+    });
+    var data = await apiRes.json();
+    res.status(apiRes.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Claude API 호출 실패: ' + err.message });
+  }
+});
+
 var PORT = process.env.PORT || 3000;
 app.listen(PORT, function() {
   console.log('JustPick 서버 실행 중: http://localhost:' + PORT);

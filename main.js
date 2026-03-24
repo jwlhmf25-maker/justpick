@@ -258,6 +258,15 @@ function 텍스트랜덤선택(optA, optB) {
   return { winner: winner, reasoning: reasoning };
 }
 
+/* ── 텍스트 모드 AI 호출 ── */
+function 텍스트AI선택(optA, optB, context) {
+  return fetch('/api/pick-text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ optionA: optA, optionB: optB, context: context || '' })
+  });
+}
+
 /* ── 이미지 모드 API 호출 ── */
 function 이미지API호출() {
   var weather  = ctxWeather.value;
@@ -489,13 +498,30 @@ function 픽실행(mode) {
   서스펜스시작();
 
   if (mode === 'text') {
-    setTimeout(function() {
-      var result = 텍스트랜덤선택(a, b);
-      드라마틱공개(result.winner, result.reasoning);
-      isLoading = false;
-      textPickBtn.disabled  = false;
-      imagePickBtn.disabled = false;
-    }, 1200);
+    var ctx = textContextInput ? textContextInput.value.trim() : '';
+    텍스트AI선택(a, b, ctx)
+      .then(function(res) {
+        if (!res.ok) {
+          return res.json().then(function(d) {
+            throw new Error(d && typeof d.error === 'string' ? d.error : 'AI 오류');
+          });
+        }
+        return res.json();
+      })
+      .then(function(data) {
+        var result = 응답파싱(data.content[0].text);
+        드라마틱공개(result.winner, result.reasoning);
+      })
+      .catch(function() {
+        /* AI 실패 시 랜덤 템플릿 폴백 */
+        var result = 텍스트랜덤선택(a, b);
+        드라마틱공개(result.winner, result.reasoning);
+      })
+      .then(function() {
+        isLoading = false;
+        textPickBtn.disabled  = false;
+        imagePickBtn.disabled = false;
+      });
     return;
   }
 
