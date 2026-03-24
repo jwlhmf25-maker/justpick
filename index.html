@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JustPick — 고민 끝, AI가 골라줄게!</title>
+  <!-- OG 메타태그 -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="JustPick — 고민 끝, AI가 골라줄게!">
+  <meta property="og:description" content="두 가지 중 하나를 못 고르겠을 때, AI가 대신 골라줘요. 지금 바로 시도해보세요!">
+  <meta property="og:url" content="https://justpick.vercel.app">
+  <meta property="og:image" content="https://justpick.vercel.app/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet">
@@ -147,7 +154,10 @@
     <div id="reveal-area" class="reveal-area hidden">
       <div class="winner-banner" id="winner-banner"></div>
       <div class="reasoning-box" id="reasoning-box"></div>
-      <button id="share-btn" class="share-btn">🔗 공유 링크 복사</button>
+      <div class="share-buttons">
+        <button id="share-btn" class="share-btn">🔗 링크 복사</button>
+        <button id="kakao-share-btn" class="share-btn kakao-btn">💬 카카오톡 공유</button>
+      </div>
       <div id="share-toast" class="share-toast hidden">링크가 복사됐어요! 📋</div>
       <button id="retry-btn" class="pick-btn retry-btn">🔄 다시 해보기</button>
     </div>
@@ -166,6 +176,7 @@
     <div id="feed-list" class="feed-list"></div>
   </section>
 
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
   <script src="main.js"></script>
 </body>
 </html>

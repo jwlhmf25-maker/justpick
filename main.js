@@ -25,7 +25,7 @@ var textPickBtn, imagePickBtn;
 var resultSection;
 var cardA, cardB, cardContentA, cardContentB, crownA, crownB;
 var suspenseArea, revealArea, winnerBanner, reasoningBox;
-var shareBtn, shareToast, retryBtn;
+var shareBtn, kakaoShareBtn, shareToast, retryBtn;
 var errorArea, errorMsg;
 var feedList;
 
@@ -485,6 +485,7 @@ function initApp() {
   winnerBanner     = document.getElementById('winner-banner');
   reasoningBox     = document.getElementById('reasoning-box');
   shareBtn         = document.getElementById('share-btn');
+  kakaoShareBtn    = document.getElementById('kakao-share-btn');
   shareToast       = document.getElementById('share-toast');
   retryBtn         = document.getElementById('retry-btn');
   errorArea        = document.getElementById('error-area');
@@ -539,6 +540,57 @@ function initApp() {
           shareToast.classList.remove('hidden');
           setTimeout(function() { shareToast.classList.add('hidden'); }, 2500);
         });
+      });
+  });
+
+  /* 카카오톡 공유 */
+  if (window.Kakao && !Kakao.isInitialized()) {
+    Kakao.init('YOUR_KAKAO_JS_KEY');
+  }
+
+  kakaoShareBtn.addEventListener('click', function() {
+    var optA = shareBtn.dataset.optionA;
+    var optB = shareBtn.dataset.optionB;
+    var label = shareBtn.dataset.label;
+    var reasoning = shareBtn.dataset.reasoning;
+
+    /* 먼저 공유 링크 생성 */
+    fetch('/api/share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        optionA: optA, optionB: optB,
+        winner: shareBtn.dataset.winner,
+        label: label, reasoning: reasoning,
+        mode: currentMode
+      })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        var shareUrl = window.location.origin + '/share/' + data.id;
+
+        if (window.Kakao && Kakao.isInitialized()) {
+          Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+              title: optA + ' vs ' + optB,
+              description: label + ' 승리! ' + reasoning.slice(0, 80),
+              imageUrl: window.location.origin + '/og-image.png',
+              link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
+            },
+            buttons: [{
+              title: '나도 골라줘!',
+              link: { mobileWebUrl: window.location.origin, webUrl: window.location.origin }
+            }]
+          });
+        } else {
+          /* 카카오 SDK 미초기화 시 링크 복사로 폴백 */
+          navigator.clipboard.writeText(shareUrl).then(function() {
+            shareToast.textContent = '카카오 연동 전이라 링크를 복사했어요! 📋';
+            shareToast.classList.remove('hidden');
+            setTimeout(function() { shareToast.classList.add('hidden'); }, 2500);
+          });
+        }
       });
   });
 

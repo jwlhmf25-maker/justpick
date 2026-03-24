@@ -497,12 +497,18 @@ select option {
   transform: translateY(0);
 }
 
-/* 공유 버튼 */
+/* 공유 버튼 그룹 */
+.share-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
 .share-btn {
   display: inline-block;
   width: auto;
   padding: 10px 22px;
-  margin: 0 auto 12px;
   background: rgba(255,255,255,0.25);
   border: 1.5px solid rgba(255,255,255,0.6);
   border-radius: 20px;
@@ -514,6 +520,15 @@ select option {
 }
 
 .share-btn:hover { background: rgba(255,255,255,0.4); }
+
+.kakao-btn {
+  background: #FEE500;
+  color: #191919;
+  border-color: #FEE500;
+}
+.kakao-btn:hover {
+  background: #fdd835;
+}
 
 /* 공유 토스트 메시지 */
 .share-toast {

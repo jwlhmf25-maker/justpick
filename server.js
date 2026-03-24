@@ -96,8 +96,9 @@ function 로그인필요(req, res, next) {
 }
 
 /* ── 정적 파일 ── */
-app.use('/style.css', express.static(path.join(__dirname, 'style.css')));
-app.use('/main.js',   express.static(path.join(__dirname, 'main.js')));
+app.use('/style.css',    express.static(path.join(__dirname, 'style.css')));
+app.use('/main.js',      express.static(path.join(__dirname, 'main.js')));
+app.use('/og-image.svg', express.static(path.join(__dirname, 'og-image.svg')));
 
 /* ── 페이지 라우트 ── */
 
@@ -110,8 +111,36 @@ app.get('/login', function(req, res) {
   res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-app.get('/share/:id', function(req, res) {
-  res.sendFile(path.join(__dirname, 'share.html'));
+app.get('/share/:id', async function(req, res) {
+  /* 공유 데이터 조회 → OG 메타태그를 동적으로 삽입 */
+  try {
+    var share;
+    if (redis) {
+      share = await redis.get('share:' + req.params.id);
+    } else {
+      var shareFile = path.join(DATA_DIR, 'share-' + req.params.id + '.json');
+      share = 파일읽기(shareFile, null);
+    }
+
+    var html = fs.readFileSync(path.join(__dirname, 'share.html'), 'utf8');
+
+    if (share) {
+      var ogTitle = (share.optionA || 'A') + ' vs ' + (share.optionB || 'B') + ' — JustPick 결과';
+      var ogDesc  = share.label + ' 승리! ' + (share.reasoning || '').slice(0, 100);
+      var ogTags  =
+        '<meta property="og:type" content="website">' +
+        '<meta property="og:title" content="' + ogTitle.replace(/"/g, '&quot;') + '">' +
+        '<meta property="og:description" content="' + ogDesc.replace(/"/g, '&quot;') + '">' +
+        '<meta property="og:url" content="https://justpick.vercel.app/share/' + req.params.id + '">' +
+        '<meta property="og:image" content="https://justpick.vercel.app/og-image.svg">' +
+        '<meta name="twitter:card" content="summary">';
+      html = html.replace('</head>', ogTags + '</head>');
+    }
+
+    res.send(html);
+  } catch (e) {
+    res.sendFile(path.join(__dirname, 'share.html'));
+  }
 });
 
 /* ── 인증 API ── */
