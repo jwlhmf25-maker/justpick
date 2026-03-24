@@ -36,9 +36,31 @@ app.use(function(req, res, next) {
   next();
 });
 
-/* ── 파일 DB 헬퍼 ── */
-var USERS_FILE = path.join(__dirname, 'users.json');
-var FEED_FILE  = path.join(__dirname, 'feed.json');
+/* ── Redis (Upstash) 초기화 ── */
+var redis = null;
+var redisUrl   = process.env.KV_REST_API_URL   || process.env.UPSTASH_REDIS_REST_URL;
+var redisToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+if (redisUrl && redisToken) {
+  var { Redis } = require('@upstash/redis');
+  redis = new Redis({ url: redisUrl, token: redisToken });
+  console.log('Upstash Redis 연결됨');
+}
+
+/* ── 파일 DB 폴백 (로컬/Docker용) ── */
+var DATA_DIR;
+try {
+  var appData = path.join(__dirname, 'data');
+  if (!fs.existsSync(appData)) fs.mkdirSync(appData, { recursive: true });
+  var testFile = path.join(appData, '.write-test');
+  fs.writeFileSync(testFile, 'ok');
+  fs.unlinkSync(testFile);
+  DATA_DIR = appData;
+} catch (e) {
+  DATA_DIR = '/tmp';
+}
+
+var USERS_FILE = path.join(DATA_DIR, 'users.json');
+var FEED_FILE  = path.join(DATA_DIR, 'feed.json');
 
 function 파일읽기(filepath, defaultVal) {
   if (!fs.existsSync(filepath)) return defaultVal;
@@ -50,7 +72,24 @@ function 파일저장(filepath, data) {
   fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
 }
 
-/* ── 인증 미들웨어 (선택적) ── */
+/* ── 통합 DB 헬퍼 (Redis 우선, 없으면 파일) ── */
+async function db읽기(key, filePath, defaultVal) {
+  if (redis) {
+    var data = await redis.get(key);
+    return data !== null && data !== undefined ? data : defaultVal;
+  }
+  return 파일읽기(filePath, defaultVal);
+}
+
+async function db저장(key, filePath, data) {
+  if (redis) {
+    await redis.set(key, data);
+  } else {
+    파일저장(filePath, data);
+  }
+}
+
+/* ── 인증 미들웨어 ── */
 function 로그인필요(req, res, next) {
   if (req.session && req.session.userId) return next();
   res.status(401).json({ error: '로그인이 필요합니다.' });
@@ -77,7 +116,7 @@ app.get('/share/:id', function(req, res) {
 
 /* ── 인증 API ── */
 
-app.post('/auth/register', function(req, res) {
+app.post('/auth/register', async function(req, res) {
   try {
     var username = (req.body.username || '').trim();
     var password = (req.body.password || '').trim();
@@ -86,13 +125,13 @@ app.post('/auth/register', function(req, res) {
     if (username.length < 2)     return res.status(400).json({ error: '아이디는 2자 이상이어야 합니다.' });
     if (password.length < 4)     return res.status(400).json({ error: '비밀번호는 4자 이상이어야 합니다.' });
 
-    var users = 파일읽기(USERS_FILE, []);
+    var users = await db읽기('users', USERS_FILE, []);
     if (users.find(function(u) { return u.username === username; }))
       return res.status(400).json({ error: '이미 사용 중인 아이디입니다.' });
 
     var hashed = bcrypt.hashSync(password, 10);
     users.push({ id: Date.now().toString(), username: username, password: hashed });
-    파일저장(USERS_FILE, users);
+    await db저장('users', USERS_FILE, users);
     res.json({ ok: true });
   } catch (e) {
     console.error('회원가입 오류:', e);
@@ -100,12 +139,12 @@ app.post('/auth/register', function(req, res) {
   }
 });
 
-app.post('/auth/login', function(req, res) {
+app.post('/auth/login', async function(req, res) {
   try {
     var username = (req.body.username || '').trim();
     var password = (req.body.password || '').trim();
 
-    var users = 파일읽기(USERS_FILE, []);
+    var users = await db읽기('users', USERS_FILE, []);
     var user  = users.find(function(u) { return u.username === username; });
 
     if (!user || !bcrypt.compareSync(password, user.password))
@@ -168,59 +207,90 @@ var 예시피드 = [
 ];
 
 /* 피드 조회 (공개) */
-app.get('/api/feed', function(req, res) {
-  var feed = 파일읽기(FEED_FILE, []);
-  /* 실제 데이터가 있으면 실제 데이터, 없으면 예시로 채움 */
-  var result = feed.length > 0 ? feed.slice(0, 30) : 예시피드;
-  res.json(result);
+app.get('/api/feed', async function(req, res) {
+  try {
+    var feed = await db읽기('feed', FEED_FILE, []);
+    /* 1시간 이내 항목만 필터링 */
+    var 한시간전 = Date.now() - 1000 * 60 * 60;
+    var filtered = feed.filter(function(item) {
+      return new Date(item.createdAt).getTime() > 한시간전;
+    });
+    res.json(filtered.length > 0 ? filtered.slice(0, 30) : 예시피드);
+  } catch (e) {
+    res.json(예시피드);
+  }
 });
 
-/* 피드 저장 (로그인 불필요 — 텍스트 모드) */
-app.post('/api/feed', function(req, res) {
-  var optionA   = (req.body.optionA || '').trim().slice(0, 40);
-  var optionB   = (req.body.optionB || '').trim().slice(0, 40);
-  var winner    = req.body.winner;
-  var label     = (req.body.label || '').slice(0, 40);
-  var reasoning = (req.body.reasoning || '').slice(0, 300);
+/* 피드 저장 */
+app.post('/api/feed', async function(req, res) {
+  try {
+    var optionA   = (req.body.optionA || '').trim().slice(0, 40);
+    var optionB   = (req.body.optionB || '').trim().slice(0, 40);
+    var winner    = req.body.winner;
+    var label     = (req.body.label || '').slice(0, 40);
+    var reasoning = (req.body.reasoning || '').slice(0, 300);
 
-  if (!optionA || !optionB || !winner) return res.status(400).json({ error: '잘못된 데이터입니다.' });
+    if (!optionA || !optionB || !winner) return res.status(400).json({ error: '잘못된 데이터입니다.' });
 
-  var feed = 파일읽기(FEED_FILE, []);
-  feed.unshift({
-    id:        Math.random().toString(36).slice(2, 8),
-    username:  (req.session && req.session.username) || req.session.nickname,
-    optionA:   optionA,
-    optionB:   optionB,
-    winner:    winner,
-    label:     label,
-    reasoning: reasoning,
-    createdAt: new Date().toISOString()
-  });
-  파일저장(FEED_FILE, feed.slice(0, 100));  /* 최대 100개 보관 */
-  res.json({ ok: true });
+    var feed = await db읽기('feed', FEED_FILE, []);
+    feed.unshift({
+      id:        Math.random().toString(36).slice(2, 8),
+      username:  (req.session && req.session.username) || req.session.nickname,
+      optionA:   optionA,
+      optionB:   optionB,
+      winner:    winner,
+      label:     label,
+      reasoning: reasoning,
+      createdAt: new Date().toISOString()
+    });
+    await db저장('feed', FEED_FILE, feed.slice(0, 100));
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('피드 저장 오류:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 /* ── 공유 API ── */
-var shares = {};
 
-app.post('/api/share', function(req, res) {
-  var id = Math.random().toString(36).slice(2, 8);
-  shares[id] = {
-    optionA:   (req.body.optionA || '').slice(0, 40),
-    optionB:   (req.body.optionB || '').slice(0, 40),
-    winner:    req.body.winner || '',
-    label:     (req.body.label || '').slice(0, 40),
-    reasoning: (req.body.reasoning || '').slice(0, 300),
-    mode:      req.body.mode || 'text',
-    createdAt: new Date().toISOString()
-  };
-  res.json({ id: id });
+app.post('/api/share', async function(req, res) {
+  try {
+    var id = Math.random().toString(36).slice(2, 8);
+    var shareData = {
+      optionA:   (req.body.optionA || '').slice(0, 40),
+      optionB:   (req.body.optionB || '').slice(0, 40),
+      winner:    req.body.winner || '',
+      label:     (req.body.label || '').slice(0, 40),
+      reasoning: (req.body.reasoning || '').slice(0, 300),
+      mode:      req.body.mode || 'text',
+      createdAt: new Date().toISOString()
+    };
+    if (redis) {
+      /* 공유 링크는 7일 후 자동 만료 */
+      await redis.set('share:' + id, shareData, { ex: 60 * 60 * 24 * 7 });
+    } else {
+      파일저장(path.join(DATA_DIR, 'share-' + id + '.json'), shareData);
+    }
+    res.json({ id: id });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-app.get('/api/share/:id', function(req, res) {
-  var share = shares[req.params.id];
-  if (!share) return res.status(404).json({ error: '결과를 찾을 수 없습니다.' });
-  res.json(share);
+app.get('/api/share/:id', async function(req, res) {
+  try {
+    var share;
+    if (redis) {
+      share = await redis.get('share:' + req.params.id);
+    } else {
+      var shareFile = path.join(DATA_DIR, 'share-' + req.params.id + '.json');
+      share = 파일읽기(shareFile, null);
+    }
+    if (!share) return res.status(404).json({ error: '결과를 찾을 수 없습니다.' });
+    res.json(share);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 /* ── Claude API 프록시 (로그인 필요 — 이미지 모드만) ── */
@@ -256,5 +326,5 @@ app.post('/api/pick', 로그인필요, function(req, res) {
 
 var PORT = process.env.PORT || 3000;
 app.listen(PORT, function() {
-  console.log('픽원 서버 실행 중: http://localhost:' + PORT);
+  console.log('JustPick 서버 실행 중: http://localhost:' + PORT);
 });
