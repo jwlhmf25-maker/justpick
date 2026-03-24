@@ -107,6 +107,19 @@ function 파일선택처리(file, previewImg, uploadCard, slot) {
     .catch(function(err) { 오류표시('이미지 처리 오류: ' + err.message); });
 }
 
+/* ── 동물 이모지 매핑 ── */
+var 동물이모지 = {
+  '호랑이': '🐯', '사자': '🦁', '토끼': '🐰', '고양이': '🐱',
+  '강아지': '🐶', '펭귄': '🐧', '여우': '🦊', '곰': '🐻',
+  '다람쥐': '🐿️', '코알라': '🐨', '늑대': '🐺', '판다': '🐼',
+  '수달': '🦦', '햄스터': '🐹', '고슴도치': '🦔'
+};
+
+function 닉네임이모지(username) {
+  var 동물 = (username || '').split(' ').pop();
+  return 동물이모지[동물] || '👤';
+}
+
 /* ── 텍스트 XSS 방지 ── */
 function 텍스트이스케이프(str) {
   return String(str)
@@ -300,7 +313,7 @@ function 피드로드() {
         var isA = item.winner === 'A';
         return '<div class="feed-card">' +
           '<div class="feed-card-header">' +
-            '<span class="feed-card-user">👤 ' + 텍스트이스케이프(item.username) + '</span>' +
+            '<span class="feed-card-user">' + 닉네임이모지(item.username) + ' ' + 텍스트이스케이프(item.username) + '</span>' +
             '<span class="feed-card-time">' + 시간포맷(item.createdAt) + '</span>' +
           '</div>' +
           '<div class="feed-card-vs">' +
