@@ -307,9 +307,18 @@ app.post('/api/feed', async function(req, res) {
     await db저장('feed', FEED_FILE, feed.slice(0, 100));
 
     /* 로그인 사용자면 개인 히스토리에도 저장 */
-    if (req.session && req.session.userId) {
-      var histKey  = 'history:' + req.session.userId;
-      var histFile = path.join(DATA_DIR, 'history-' + req.session.userId + '.json');
+    var histUserId = (req.session && req.session.userId) || null;
+
+    /* 세션이 유실된 경우 (Vercel 서버리스) body의 username으로 userId 조회 */
+    if (!histUserId && req.body.username) {
+      var users = await db읽기('users', USERS_FILE, []);
+      var found = users.find(function(u) { return u.username === req.body.username; });
+      if (found) histUserId = found.id;
+    }
+
+    if (histUserId) {
+      var histKey  = 'history:' + histUserId;
+      var histFile = path.join(DATA_DIR, 'history-' + histUserId + '.json');
       var history  = await db읽기(histKey, histFile, []);
       history.unshift(newItem);
       await db저장(histKey, histFile, history.slice(0, 50));
@@ -324,10 +333,21 @@ app.post('/api/feed', async function(req, res) {
 
 /* ── 내 히스토리 API ── */
 
-app.get('/api/my-history', 로그인필요, async function(req, res) {
+app.get('/api/my-history', async function(req, res) {
   try {
-    var histKey  = 'history:' + req.session.userId;
-    var histFile = path.join(DATA_DIR, 'history-' + req.session.userId + '.json');
+    var userId = (req.session && req.session.userId) || null;
+
+    /* 세션 유실 시 query의 username으로 userId 조회 */
+    if (!userId && req.query.username) {
+      var users = await db읽기('users', USERS_FILE, []);
+      var found = users.find(function(u) { return u.username === req.query.username; });
+      if (found) userId = found.id;
+    }
+
+    if (!userId) return res.status(401).json({ error: '로그인이 필요합니다.' });
+
+    var histKey  = 'history:' + userId;
+    var histFile = path.join(DATA_DIR, 'history-' + userId + '.json');
     var history  = await db읽기(histKey, histFile, []);
     res.json(history);
   } catch (e) {

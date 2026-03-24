@@ -101,7 +101,7 @@ function 메뉴전환(panelId) {
 
 /* ── 내 히스토리 로드 ── */
 function 히스토리로드() {
-  fetch('/api/my-history')
+  fetch('/api/my-history?username=' + encodeURIComponent(currentUser || ''))
     .then(function(res) { return res.ok ? res.json() : []; })
     .then(function(items) {
       if (!items.length) {
@@ -438,7 +438,7 @@ function 피드저장(optionA, optionB, winner, label, reasoning) {
   fetch('/api/feed', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ optionA: optionA, optionB: optionB, winner: winner, label: label, reasoning: reasoning })
+    body: JSON.stringify({ optionA: optionA, optionB: optionB, winner: winner, label: label, reasoning: reasoning, username: currentUser || '' })
   })
     .then(function() { 피드로드(); });
 }
