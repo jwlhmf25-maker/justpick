@@ -102,6 +102,55 @@ body {
 
 .btn-ghost-solid:hover { opacity: 0.88; }
 
+/* ── 사용법 안내 ── */
+.how-to {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 16px 20px;
+  width: 100%;
+  max-width: 600px;
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.how-to-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.how-to-icon {
+  font-size: 1.6rem;
+}
+
+.how-to-text {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.how-to-arrow {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.5);
+  flex-shrink: 0;
+}
+
+/* 섹션 설명 */
+.section-desc {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
 /* 로그인 필요 뱃지 */
 .login-badge {
   font-size: 0.65rem;
@@ -716,12 +765,22 @@ select option {
   margin-top: 40px;
 }
 
+.feed-header {
+  margin-bottom: 16px;
+}
+
 .feed-title {
   font-size: 1.1rem;
   font-weight: 900;
   color: rgba(255,255,255,0.95);
-  margin-bottom: 16px;
+  margin-bottom: 6px;
   text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.feed-desc {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
 }
 
 .feed-list {

@@ -122,10 +122,46 @@ app.get('/auth/me', function(req, res) {
 
 /* ── 피드 API ── */
 
+/* 기본 예시 피드 (실제 데이터가 없을 때 보여줌) */
+var 예시피드 = [
+  {
+    id: 'ex1', username: '배고픈 수달',
+    optionA: '치킨', optionB: '피자', winner: 'A', label: '치킨',
+    reasoning: '오늘 같은 날엔 역시 치킨이죠. 바삭한 튀김옷이 모든 고민을 해결해줄 거예요.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 3).toISOString()
+  },
+  {
+    id: 'ex2', username: '즐거운 고양이',
+    optionA: '넷플릭스', optionB: '유튜브', winner: 'A', label: '넷플릭스',
+    reasoning: '오늘은 광고 없이 편하게 보는 날이에요. 좋아하는 시리즈 정주행 가즈아!',
+    createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString()
+  },
+  {
+    id: 'ex3', username: '신나는 펭귄',
+    optionA: '헬스장', optionB: '집에서 쉬기', winner: 'B', label: '집에서 쉬기',
+    reasoning: '몸이 먼저 알아요. 오늘은 충전하는 날! 내일 두 배로 운동하면 되거든요.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 27).toISOString()
+  },
+  {
+    id: 'ex4', username: '수줍은 여우',
+    optionA: '아메리카노', optionB: '라떼', winner: 'B', label: '라떼',
+    reasoning: '오늘 하루가 좀 피곤해 보이시네요. 부드러운 라떼로 달달하게 시작해봐요.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+  },
+  {
+    id: 'ex5', username: '느긋한 곰',
+    optionA: '택시', optionB: '버스', winner: 'A', label: '택시',
+    reasoning: '시간은 돈이에요. 오늘만큼은 편하게 가도 괜찮아요, 충분히 그럴 자격이 있어요!',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString()
+  }
+];
+
 /* 피드 조회 (공개) */
 app.get('/api/feed', function(req, res) {
   var feed = 파일읽기(FEED_FILE, []);
-  res.json(feed.slice(0, 30));  /* 최근 30개 */
+  /* 실제 데이터가 있으면 실제 데이터, 없으면 예시로 채움 */
+  var result = feed.length > 0 ? feed.slice(0, 30) : 예시피드;
+  res.json(result);
 });
 
 /* 피드 저장 (로그인 불필요 — 텍스트 모드) */

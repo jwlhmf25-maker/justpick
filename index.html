@@ -19,6 +19,24 @@
     </div>
   </header>
 
+  <!-- 사용법 안내 -->
+  <div class="how-to">
+    <div class="how-to-step">
+      <span class="how-to-icon">✏️</span>
+      <span class="how-to-text">두 가지를 입력하거나<br>사진 두 장을 올려요</span>
+    </div>
+    <div class="how-to-arrow">→</div>
+    <div class="how-to-step">
+      <span class="how-to-icon">🎲</span>
+      <span class="how-to-text">'골라줘!' 버튼을<br>누르세요</span>
+    </div>
+    <div class="how-to-arrow">→</div>
+    <div class="how-to-step">
+      <span class="how-to-icon">🎉</span>
+      <span class="how-to-text">결과와 이유를<br>확인하세요</span>
+    </div>
+  </div>
+
   <!-- 모드 탭 -->
   <div class="mode-tabs">
     <button id="tab-text" class="tab-btn active">✏️ 텍스트</button>
@@ -30,6 +48,7 @@
 
     <!-- 텍스트 모드 -->
     <section id="text-section" class="input-section">
+      <p class="section-desc">고민하는 두 가지를 입력하면 골라드려요. 음식, 장소, 옷, 뭐든 OK!</p>
       <div class="vs-row">
         <div class="field flex-1">
           <label for="option-a">선택지 A</label>
@@ -50,6 +69,7 @@
 
     <!-- 이미지 모드 -->
     <section id="image-section" class="input-section hidden">
+      <p class="section-desc">사진 두 장을 올리면 AI가 날씨와 상황에 맞게 골라드려요. 코디 고민에 딱!</p>
       <div class="vs-row">
         <div class="image-upload-card" id="upload-a">
           <input type="file" id="file-a" accept="image/*" class="file-input">
@@ -134,10 +154,11 @@
 
   <!-- 피드 -->
   <section class="feed-section">
-    <h2 class="feed-title">🔥 다른 사람들의 고민</h2>
-    <div id="feed-list" class="feed-list">
-      <p class="feed-empty">아직 고민이 없어요. 첫 번째로 골라줘를 눌러보세요!</p>
+    <div class="feed-header">
+      <h2 class="feed-title">🔥 다른 사람들의 고민</h2>
+      <p class="feed-desc">지금 이 순간 다른 사람들은 무엇을 고민하고 있을까요?<br>골라줘를 누르면 내 고민도 여기에 올라와요.</p>
     </div>
+    <div id="feed-list" class="feed-list"></div>
   </section>
 
   <script src="main.js"></script>
