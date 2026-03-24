@@ -26,7 +26,7 @@ body {
   flex-direction: column;
   align-items: center;
   background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
-  font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   padding: 24px 16px 60px;
   color: var(--text-dark);
 }
@@ -47,10 +47,15 @@ body {
 }
 
 .app-title {
-  font-size: 2.4rem;
-  font-weight: 900;
-  letter-spacing: -1px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  font-family: 'Syne', sans-serif;
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.75));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .app-subtitle {
@@ -564,10 +569,15 @@ select option {
 }
 
 .auth-logo {
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: #ff6b6b;
+  font-family: 'Syne', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff6b6b, #feca57);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 6px;
+  letter-spacing: -0.5px;
 }
 
 .auth-sub {
