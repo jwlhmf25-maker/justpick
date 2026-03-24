@@ -114,6 +114,87 @@ body {
 
 .btn-ghost-solid:hover { opacity: 0.88; }
 
+/* ── 사이드바 ── */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 220px;
+  height: 100vh;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  box-shadow: 2px 0 20px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 100px 12px 24px;
+  z-index: 100;
+}
+
+.sidebar-item {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #374151;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--trans);
+  margin-bottom: 4px;
+  font-family: 'Pretendard', sans-serif;
+}
+
+.sidebar-item:hover {
+  background: rgba(255,107,107,0.08);
+  color: #ff6b6b;
+}
+
+.sidebar-item.active {
+  background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(254,202,87,0.15));
+  color: #ff6b6b;
+}
+
+/* 로그인 시 본문 여백 */
+body.logged-in {
+  padding-left: 236px;
+}
+
+body.logged-in .app-header {
+  padding-left: 0;
+}
+
+/* 패널 헤더 */
+.panel-header {
+  margin-bottom: 20px;
+}
+
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.panel-desc {
+  font-size: 0.82rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+/* 콘텐츠 패널 */
+.content-panel {
+  width: 100%;
+  max-width: 600px;
+}
+
+.app-layout {
+  width: 100%;
+  max-width: 600px;
+}
+
 /* ── 사용법 안내 ── */
 .how-to {
   display: flex;
@@ -908,6 +989,35 @@ select option {
 }
 
 /* ── 반응형 ── */
+
+/* 모바일: 사이드바 → 가로 탭 */
+@media (max-width: 768px) {
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    padding: 0 8px;
+    gap: 4px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    border-radius: 14px;
+    margin-bottom: 20px;
+  }
+
+  .sidebar-item {
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+  }
+
+  body.logged-in {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
 @media (max-width: 480px) {
   .app-title { font-size: 1.7rem; }
   .vs-row { gap: 8px; }
@@ -916,4 +1026,6 @@ select option {
   .battle-card { padding: 14px 10px; }
   .winner-banner { font-size: 1.4rem; }
   .auth-card { padding: 28px 20px; }
+
+  .sidebar-item { font-size: 0.72rem; padding: 10px 6px; }
 }

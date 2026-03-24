@@ -28,6 +28,9 @@ var suspenseArea, revealArea, winnerBanner, reasoningBox;
 var shareBtn, kakaoShareBtn, shareToast, retryBtn;
 var errorArea, errorMsg;
 var feedList;
+var sidebar, panelPick, panelHistory, panelFeed;
+var feedSectionDefault, feedListDefault;
+var historyList;
 
 /* ── 헤더 인증 UI ── */
 
@@ -41,12 +44,75 @@ function 헤더업데이트(username) {
       fetch('/auth/logout', { method: 'POST' })
         .then(function() { window.location.reload(); });
     });
+
+    /* 사이드바 표시 + 레이아웃 전환 */
+    sidebar.classList.remove('hidden');
+    document.body.classList.add('logged-in');
+    feedSectionDefault.classList.add('hidden');
+
+    /* 사이드바 메뉴 클릭 이벤트 */
+    var sidebarItems = sidebar.querySelectorAll('.sidebar-item');
+    for (var i = 0; i < sidebarItems.length; i++) {
+      sidebarItems[i].addEventListener('click', function() {
+        메뉴전환(this.getAttribute('data-panel'));
+      });
+    }
+
+    /* 기본 패널 활성화 */
+    메뉴전환('panel-pick');
   } else {
     /* 비로그인 상태 */
     headerAuth.innerHTML =
       '<a href="/login" class="btn-ghost">로그인</a>' +
       '<a href="/login" class="btn-ghost-solid">회원가입</a>';
+
+    /* 사이드바 숨김, 기존 레이아웃 유지 */
+    sidebar.classList.add('hidden');
+    document.body.classList.remove('logged-in');
+    panelPick.classList.remove('hidden');
+    panelHistory.classList.add('hidden');
+    panelFeed.classList.add('hidden');
+    feedSectionDefault.classList.remove('hidden');
   }
+}
+
+/* ── 사이드바 메뉴 전환 ── */
+function 메뉴전환(panelId) {
+  /* 패널 전환 */
+  panelPick.classList.toggle('hidden', panelId !== 'panel-pick');
+  panelHistory.classList.toggle('hidden', panelId !== 'panel-history');
+  panelFeed.classList.toggle('hidden', panelId !== 'panel-feed');
+
+  /* 활성 메뉴 하이라이트 */
+  var sidebarItems = sidebar.querySelectorAll('.sidebar-item');
+  for (var i = 0; i < sidebarItems.length; i++) {
+    sidebarItems[i].classList.toggle('active', sidebarItems[i].getAttribute('data-panel') === panelId);
+  }
+
+  /* 히스토리 패널 선택 시 로드 */
+  if (panelId === 'panel-history') {
+    히스토리로드();
+  }
+  /* 피드 패널 선택 시 로드 */
+  if (panelId === 'panel-feed') {
+    피드로드();
+  }
+}
+
+/* ── 내 히스토리 로드 ── */
+function 히스토리로드() {
+  fetch('/api/my-history')
+    .then(function(res) { return res.ok ? res.json() : []; })
+    .then(function(items) {
+      if (!items.length) {
+        historyList.innerHTML = '<p class="feed-empty">아직 히스토리가 없어요. 골라줘! 를 눌러보세요!</p>';
+        return;
+      }
+      historyList.innerHTML = items.map(피드카드HTML).join('');
+    })
+    .catch(function() {
+      historyList.innerHTML = '<p class="feed-empty">히스토리를 불러올 수 없어요.</p>';
+    });
 }
 
 /* ── 모드 전환 ── */
@@ -342,17 +408,21 @@ function 피드렌더링() {
     var 버튼텍스트 = 피드예시모드
       ? '더보기 (' + 남은개수 + '개)'
       : '더보기';
-    html += '<button id="feed-more-btn" class="feed-more-btn">' + 버튼텍스트 + '</button>';
+    html += '<button class="feed-more-btn feed-more-action">' + 버튼텍스트 + '</button>';
   }
 
-  feedList.innerHTML = html;
+  /* 로그인 상태면 panel-feed 안의 feed-list에, 아니면 default에 렌더링 */
+  var target = currentUser ? feedList : feedListDefault;
+  if (target) target.innerHTML = html;
+  /* 양쪽 다 있으면 둘 다 업데이트 */
+  if (currentUser && feedListDefault) feedListDefault.innerHTML = '';
 
-  var moreBtn = document.getElementById('feed-more-btn');
-  if (moreBtn) {
-    moreBtn.addEventListener('click', function() {
+  var moreBtns = document.querySelectorAll('.feed-more-action');
+  for (var i = 0; i < moreBtns.length; i++) {
+    moreBtns[i].addEventListener('click', function() {
       피드표시개수 = 피드예시모드
-        ? 피드전체아이템.length   /* 예시: 전체 한 번에 표시 */
-        : 피드표시개수 + 5;        /* 실제: 5개씩 추가 */
+        ? 피드전체아이템.length
+        : 피드표시개수 + 5;
       피드렌더링();
     });
   }
@@ -380,8 +450,9 @@ function 피드로드() {
   fetch('/api/feed')
     .then(function(res) { return res.json(); })
     .then(function(items) {
+      var target = currentUser ? feedList : feedListDefault;
       if (!items.length) {
-        feedList.innerHTML = '<p class="feed-empty">아직 고민이 없어요. 첫 번째로 골라줘를 눌러보세요!</p>';
+        if (target) target.innerHTML = '<p class="feed-empty">아직 고민이 없어요. 첫 번째로 골라줘를 눌러보세요!</p>';
         return;
       }
       피드전체아이템 = items;
@@ -521,7 +592,14 @@ function initApp() {
   retryBtn         = document.getElementById('retry-btn');
   errorArea        = document.getElementById('error-area');
   errorMsg         = document.getElementById('error-msg');
-  feedList         = document.getElementById('feed-list');
+  feedList           = document.getElementById('feed-list');
+  sidebar            = document.getElementById('sidebar');
+  panelPick          = document.getElementById('panel-pick');
+  panelHistory       = document.getElementById('panel-history');
+  panelFeed          = document.getElementById('panel-feed');
+  feedSectionDefault = document.getElementById('feed-section-default');
+  feedListDefault    = document.getElementById('feed-list-default');
+  historyList        = document.getElementById('history-list');
 
   /* 로그인 상태 확인 → 헤더 업데이트 */
   fetch('/auth/me')

@@ -292,20 +292,46 @@ app.post('/api/feed', async function(req, res) {
     if (!optionA || !optionB || !winner) return res.status(400).json({ error: '잘못된 데이터입니다.' });
 
     var feed = await db읽기('feed', FEED_FILE, []);
-    feed.unshift({
+    var newItem = {
       id:        Math.random().toString(36).slice(2, 8),
       username:  (req.session && req.session.username) || req.session.nickname,
+      userId:    (req.session && req.session.userId) || null,
       optionA:   optionA,
       optionB:   optionB,
       winner:    winner,
       label:     label,
       reasoning: reasoning,
       createdAt: new Date().toISOString()
-    });
+    };
+    feed.unshift(newItem);
     await db저장('feed', FEED_FILE, feed.slice(0, 100));
+
+    /* 로그인 사용자면 개인 히스토리에도 저장 */
+    if (req.session && req.session.userId) {
+      var histKey  = 'history:' + req.session.userId;
+      var histFile = path.join(DATA_DIR, 'history-' + req.session.userId + '.json');
+      var history  = await db읽기(histKey, histFile, []);
+      history.unshift(newItem);
+      await db저장(histKey, histFile, history.slice(0, 50));
+    }
+
     res.json({ ok: true });
   } catch (e) {
     console.error('피드 저장 오류:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/* ── 내 히스토리 API ── */
+
+app.get('/api/my-history', 로그인필요, async function(req, res) {
+  try {
+    var histKey  = 'history:' + req.session.userId;
+    var histFile = path.join(DATA_DIR, 'history-' + req.session.userId + '.json');
+    var history  = await db읽기(histKey, histFile, []);
+    res.json(history);
+  } catch (e) {
+    console.error('히스토리 조회 오류:', e);
     res.status(500).json({ error: e.message });
   }
 });

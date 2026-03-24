@@ -31,149 +31,186 @@
     </div>
   </header>
 
-  <!-- 사용법 안내 -->
-  <div class="how-to">
-    <div class="how-to-step">
-      <span class="how-to-icon">✏️</span>
-      <span class="how-to-text">두 가지를 입력하거나<br>사진 두 장을 올려요</span>
+  <!-- 사이드바 (로그인 시에만 표시) -->
+  <nav class="sidebar hidden" id="sidebar">
+    <button class="sidebar-item active" data-panel="panel-pick">✏️ 고민 입력</button>
+    <button class="sidebar-item" data-panel="panel-history">📋 내 히스토리</button>
+    <button class="sidebar-item" data-panel="panel-feed">🔥 다른 사람들의 고민</button>
+  </nav>
+
+  <!-- 앱 레이아웃 래퍼 -->
+  <div class="app-layout" id="app-layout">
+
+    <!-- 패널 1: 고민 입력 (기본 표시) -->
+    <div class="content-panel" id="panel-pick">
+
+      <!-- 사용법 안내 -->
+      <div class="how-to">
+        <div class="how-to-step">
+          <span class="how-to-icon">✏️</span>
+          <span class="how-to-text">두 가지를 입력하거나<br>사진 두 장을 올려요</span>
+        </div>
+        <div class="how-to-arrow">→</div>
+        <div class="how-to-step">
+          <span class="how-to-icon">🎲</span>
+          <span class="how-to-text">'골라줘!' 버튼을<br>누르세요</span>
+        </div>
+        <div class="how-to-arrow">→</div>
+        <div class="how-to-step">
+          <span class="how-to-icon">🎉</span>
+          <span class="how-to-text">결과와 이유를<br>확인하세요</span>
+        </div>
+      </div>
+
+      <!-- 모드 탭 -->
+      <div class="mode-tabs">
+        <button id="tab-text" class="tab-btn active">✏️ 텍스트</button>
+        <button id="tab-image" class="tab-btn">📷 이미지 <span class="login-badge">로그인 필요</span></button>
+      </div>
+
+      <!-- 메인 입력 영역 -->
+      <main class="app-main">
+
+        <!-- 텍스트 모드 -->
+        <section id="text-section" class="input-section">
+          <p class="section-desc">고민하는 두 가지를 입력하면 골라드려요. 음식, 장소, 옷, 뭐든 OK!</p>
+          <div class="vs-row">
+            <div class="field flex-1">
+              <label for="option-a">선택지 A</label>
+              <input type="text" id="option-a" placeholder="예: 비빔밥" maxlength="40">
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="field flex-1">
+              <label for="option-b">선택지 B</label>
+              <input type="text" id="option-b" placeholder="예: 피자" maxlength="40">
+            </div>
+          </div>
+          <div class="field" style="margin-top:12px;">
+            <label for="text-context">상황 (선택)</label>
+            <input type="text" id="text-context" placeholder="예: 오늘 점심 뭐 먹을까?" maxlength="80">
+          </div>
+          <button id="text-pick-btn" class="pick-btn">🎲 골라줘!</button>
+        </section>
+
+        <!-- 이미지 모드 -->
+        <section id="image-section" class="input-section hidden">
+          <p class="section-desc">사진 두 장을 올리면 AI가 날씨와 상황에 맞게 골라드려요. 코디 고민에 딱!</p>
+          <div class="vs-row">
+            <div class="image-upload-card" id="upload-a">
+              <input type="file" id="file-a" accept="image/*" class="file-input">
+              <div class="upload-label">
+                <span class="upload-icon">📁</span>
+                <span class="upload-text">이미지 A 선택</span>
+              </div>
+              <img id="preview-a" class="img-preview hidden" alt="미리보기 A">
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="image-upload-card" id="upload-b">
+              <input type="file" id="file-b" accept="image/*" class="file-input">
+              <div class="upload-label">
+                <span class="upload-icon">📁</span>
+                <span class="upload-text">이미지 B 선택</span>
+              </div>
+              <img id="preview-b" class="img-preview hidden" alt="미리보기 B">
+            </div>
+          </div>
+          <div class="context-row">
+            <div class="field flex-1">
+              <label for="ctx-weather">날씨</label>
+              <select id="ctx-weather">
+                <option value="">선택 안 함</option>
+                <option value="맑음">맑음 ☀️</option>
+                <option value="흐림">흐림 ☁️</option>
+                <option value="비">비 🌧️</option>
+                <option value="눈">눈 ❄️</option>
+              </select>
+            </div>
+            <div class="field flex-1">
+              <label for="ctx-occasion">상황</label>
+              <select id="ctx-occasion">
+                <option value="">선택 안 함</option>
+                <option value="소개팅">소개팅 💝</option>
+                <option value="면접">면접 💼</option>
+                <option value="친구 만남">친구 만남 😄</option>
+                <option value="데이트">데이트 💑</option>
+                <option value="캐주얼">캐주얼 👟</option>
+                <option value="파티">파티 🎉</option>
+              </select>
+            </div>
+          </div>
+          <button id="image-pick-btn" class="pick-btn">🎲 골라줘!</button>
+        </section>
+
+      </main>
+
+      <!-- 결과 영역 -->
+      <section id="result-section" class="result-section hidden">
+        <div class="battle-row">
+          <div class="battle-card" id="card-a">
+            <div class="card-label">A</div>
+            <div class="card-content" id="card-content-a"></div>
+            <div class="crown hidden" id="crown-a">👑</div>
+          </div>
+          <div class="battle-vs">⚡</div>
+          <div class="battle-card" id="card-b">
+            <div class="card-label">B</div>
+            <div class="card-content" id="card-content-b"></div>
+            <div class="crown hidden" id="crown-b">👑</div>
+          </div>
+        </div>
+
+        <div id="suspense-area" class="suspense-area hidden">
+          <div class="thinking-dots"><span></span><span></span><span></span></div>
+          <p class="suspense-text">AI가 진지하게 고민 중...</p>
+        </div>
+
+        <div id="reveal-area" class="reveal-area hidden">
+          <div class="winner-banner" id="winner-banner"></div>
+          <div class="reasoning-box" id="reasoning-box"></div>
+          <div class="share-buttons">
+            <button id="share-btn" class="share-btn">🔗 링크 복사</button>
+            <button id="kakao-share-btn" class="share-btn kakao-btn">💬 카카오톡 공유</button>
+          </div>
+          <div id="share-toast" class="share-toast hidden">링크가 복사됐어요! 📋</div>
+          <button id="retry-btn" class="pick-btn retry-btn">🔄 다시 해보기</button>
+        </div>
+
+        <div id="error-area" class="error-area hidden">
+          <p id="error-msg"></p>
+        </div>
+      </section>
+
     </div>
-    <div class="how-to-arrow">→</div>
-    <div class="how-to-step">
-      <span class="how-to-icon">🎲</span>
-      <span class="how-to-text">'골라줘!' 버튼을<br>누르세요</span>
+
+    <!-- 패널 2: 내 히스토리 (로그인 시에만) -->
+    <div class="content-panel hidden" id="panel-history">
+      <div class="panel-header">
+        <h2 class="panel-title">📋 내 히스토리</h2>
+        <p class="panel-desc">내가 골라줘! 를 누른 기록이에요. (최대 50개 보관)</p>
+      </div>
+      <div id="history-list" class="feed-list"></div>
     </div>
-    <div class="how-to-arrow">→</div>
-    <div class="how-to-step">
-      <span class="how-to-icon">🎉</span>
-      <span class="how-to-text">결과와 이유를<br>확인하세요</span>
+
+    <!-- 패널 3: 다른 사람들의 고민 -->
+    <div class="content-panel hidden" id="panel-feed">
+      <section class="feed-section">
+        <div class="feed-header">
+          <h2 class="feed-title">🔥 다른 사람들의 고민</h2>
+          <p class="feed-desc">지금 이 순간 다른 사람들은 무엇을 고민하고 있을까요?<br>골라줘를 누르면 내 고민도 여기에 올라와요.</p>
+        </div>
+        <div id="feed-list" class="feed-list"></div>
+      </section>
     </div>
+
   </div>
 
-  <!-- 모드 탭 -->
-  <div class="mode-tabs">
-    <button id="tab-text" class="tab-btn active">✏️ 텍스트</button>
-    <button id="tab-image" class="tab-btn">📷 이미지 <span class="login-badge">로그인 필요</span></button>
-  </div>
-
-  <!-- 메인 입력 영역 -->
-  <main class="app-main">
-
-    <!-- 텍스트 모드 -->
-    <section id="text-section" class="input-section">
-      <p class="section-desc">고민하는 두 가지를 입력하면 골라드려요. 음식, 장소, 옷, 뭐든 OK!</p>
-      <div class="vs-row">
-        <div class="field flex-1">
-          <label for="option-a">선택지 A</label>
-          <input type="text" id="option-a" placeholder="예: 비빔밥" maxlength="40">
-        </div>
-        <div class="vs-badge">VS</div>
-        <div class="field flex-1">
-          <label for="option-b">선택지 B</label>
-          <input type="text" id="option-b" placeholder="예: 피자" maxlength="40">
-        </div>
-      </div>
-      <div class="field" style="margin-top:12px;">
-        <label for="text-context">상황 (선택)</label>
-        <input type="text" id="text-context" placeholder="예: 오늘 점심 뭐 먹을까?" maxlength="80">
-      </div>
-      <button id="text-pick-btn" class="pick-btn">🎲 골라줘!</button>
-    </section>
-
-    <!-- 이미지 모드 -->
-    <section id="image-section" class="input-section hidden">
-      <p class="section-desc">사진 두 장을 올리면 AI가 날씨와 상황에 맞게 골라드려요. 코디 고민에 딱!</p>
-      <div class="vs-row">
-        <div class="image-upload-card" id="upload-a">
-          <input type="file" id="file-a" accept="image/*" class="file-input">
-          <div class="upload-label">
-            <span class="upload-icon">📁</span>
-            <span class="upload-text">이미지 A 선택</span>
-          </div>
-          <img id="preview-a" class="img-preview hidden" alt="미리보기 A">
-        </div>
-        <div class="vs-badge">VS</div>
-        <div class="image-upload-card" id="upload-b">
-          <input type="file" id="file-b" accept="image/*" class="file-input">
-          <div class="upload-label">
-            <span class="upload-icon">📁</span>
-            <span class="upload-text">이미지 B 선택</span>
-          </div>
-          <img id="preview-b" class="img-preview hidden" alt="미리보기 B">
-        </div>
-      </div>
-      <div class="context-row">
-        <div class="field flex-1">
-          <label for="ctx-weather">날씨</label>
-          <select id="ctx-weather">
-            <option value="">선택 안 함</option>
-            <option value="맑음">맑음 ☀️</option>
-            <option value="흐림">흐림 ☁️</option>
-            <option value="비">비 🌧️</option>
-            <option value="눈">눈 ❄️</option>
-          </select>
-        </div>
-        <div class="field flex-1">
-          <label for="ctx-occasion">상황</label>
-          <select id="ctx-occasion">
-            <option value="">선택 안 함</option>
-            <option value="소개팅">소개팅 💝</option>
-            <option value="면접">면접 💼</option>
-            <option value="친구 만남">친구 만남 😄</option>
-            <option value="데이트">데이트 💑</option>
-            <option value="캐주얼">캐주얼 👟</option>
-            <option value="파티">파티 🎉</option>
-          </select>
-        </div>
-      </div>
-      <button id="image-pick-btn" class="pick-btn">🎲 골라줘!</button>
-    </section>
-
-  </main>
-
-  <!-- 결과 영역 -->
-  <section id="result-section" class="result-section hidden">
-    <div class="battle-row">
-      <div class="battle-card" id="card-a">
-        <div class="card-label">A</div>
-        <div class="card-content" id="card-content-a"></div>
-        <div class="crown hidden" id="crown-a">👑</div>
-      </div>
-      <div class="battle-vs">⚡</div>
-      <div class="battle-card" id="card-b">
-        <div class="card-label">B</div>
-        <div class="card-content" id="card-content-b"></div>
-        <div class="crown hidden" id="crown-b">👑</div>
-      </div>
-    </div>
-
-    <div id="suspense-area" class="suspense-area hidden">
-      <div class="thinking-dots"><span></span><span></span><span></span></div>
-      <p class="suspense-text">AI가 진지하게 고민 중...</p>
-    </div>
-
-    <div id="reveal-area" class="reveal-area hidden">
-      <div class="winner-banner" id="winner-banner"></div>
-      <div class="reasoning-box" id="reasoning-box"></div>
-      <div class="share-buttons">
-        <button id="share-btn" class="share-btn">🔗 링크 복사</button>
-        <button id="kakao-share-btn" class="share-btn kakao-btn">💬 카카오톡 공유</button>
-      </div>
-      <div id="share-toast" class="share-toast hidden">링크가 복사됐어요! 📋</div>
-      <button id="retry-btn" class="pick-btn retry-btn">🔄 다시 해보기</button>
-    </div>
-
-    <div id="error-area" class="error-area hidden">
-      <p id="error-msg"></p>
-    </div>
-  </section>
-
-  <!-- 피드 -->
-  <section class="feed-section">
+  <!-- 비로그인용 피드 (사이드바 없을 때) -->
+  <section class="feed-section" id="feed-section-default">
     <div class="feed-header">
       <h2 class="feed-title">🔥 다른 사람들의 고민</h2>
       <p class="feed-desc">지금 이 순간 다른 사람들은 무엇을 고민하고 있을까요?<br>골라줘를 누르면 내 고민도 여기에 올라와요.</p>
     </div>
-    <div id="feed-list" class="feed-list"></div>
+    <div id="feed-list-default" class="feed-list"></div>
   </section>
 
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
