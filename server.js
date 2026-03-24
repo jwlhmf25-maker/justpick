@@ -8,6 +8,7 @@ var fs        = require('fs');
 var path      = require('path');
 
 var app = express();
+app.set('trust proxy', 1);
 
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: false }));
