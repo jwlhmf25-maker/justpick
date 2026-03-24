@@ -10,6 +10,9 @@ var imageMimeA   = null;
 var imageMimeB   = null;
 var isLoading    = false;
 var currentUser  = null;  /* 로그인한 경우 username 문자열 */
+var 피드전체아이템 = [];
+var 피드표시개수   = 5;
+var 피드예시모드   = false;
 
 /* ── DOM 참조 변수 ── */
 var headerAuth;
@@ -283,6 +286,47 @@ function 드라마틱공개(winner, reasoning) {
 
 /* ── 피드 ── */
 
+function 피드카드HTML(item) {
+  var isA = item.winner === 'A';
+  return '<div class="feed-card">' +
+    '<div class="feed-card-header">' +
+      '<span class="feed-card-user">' + 닉네임이모지(item.username) + ' ' + 텍스트이스케이프(item.username) + '</span>' +
+      '<span class="feed-card-time">' + 시간포맷(item.createdAt) + '</span>' +
+    '</div>' +
+    '<div class="feed-card-vs">' +
+      '<div class="feed-option ' + (isA ? 'winner' : '') + '">' + 텍스트이스케이프(item.optionA) + '</div>' +
+      '<div class="feed-vs-dot">VS</div>' +
+      '<div class="feed-option ' + (!isA ? 'winner' : '') + '">' + 텍스트이스케이프(item.optionB) + '</div>' +
+    '</div>' +
+    '<div class="feed-reasoning">"' + 텍스트이스케이프(item.reasoning) + '"</div>' +
+  '</div>';
+}
+
+function 피드렌더링() {
+  var html = 피드전체아이템.slice(0, 피드표시개수).map(피드카드HTML).join('');
+
+  /* 더보기 버튼 */
+  if (피드표시개수 < 피드전체아이템.length) {
+    var 남은개수 = 피드전체아이템.length - 피드표시개수;
+    var 버튼텍스트 = 피드예시모드
+      ? '더보기 (' + 남은개수 + '개)'
+      : '더보기';
+    html += '<button id="feed-more-btn" class="feed-more-btn">' + 버튼텍스트 + '</button>';
+  }
+
+  feedList.innerHTML = html;
+
+  var moreBtn = document.getElementById('feed-more-btn');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', function() {
+      피드표시개수 = 피드예시모드
+        ? 피드전체아이템.length   /* 예시: 전체 한 번에 표시 */
+        : 피드표시개수 + 5;        /* 실제: 5개씩 추가 */
+      피드렌더링();
+    });
+  }
+}
+
 function 피드저장(optionA, optionB, winner, label, reasoning) {
   fetch('/api/feed', {
     method: 'POST',
@@ -301,6 +345,7 @@ function 시간포맷(iso) {
 }
 
 function 피드로드() {
+  피드표시개수 = 5;
   fetch('/api/feed')
     .then(function(res) { return res.json(); })
     .then(function(items) {
@@ -308,22 +353,9 @@ function 피드로드() {
         feedList.innerHTML = '<p class="feed-empty">아직 고민이 없어요. 첫 번째로 골라줘를 눌러보세요!</p>';
         return;
       }
-
-      feedList.innerHTML = items.map(function(item) {
-        var isA = item.winner === 'A';
-        return '<div class="feed-card">' +
-          '<div class="feed-card-header">' +
-            '<span class="feed-card-user">' + 닉네임이모지(item.username) + ' ' + 텍스트이스케이프(item.username) + '</span>' +
-            '<span class="feed-card-time">' + 시간포맷(item.createdAt) + '</span>' +
-          '</div>' +
-          '<div class="feed-card-vs">' +
-            '<div class="feed-option ' + (isA ? 'winner' : '') + '">' + 텍스트이스케이프(item.optionA) + '</div>' +
-            '<div class="feed-vs-dot">VS</div>' +
-            '<div class="feed-option ' + (!isA ? 'winner' : '') + '">' + 텍스트이스케이프(item.optionB) + '</div>' +
-          '</div>' +
-          '<div class="feed-reasoning">"' + 텍스트이스케이프(item.reasoning) + '"</div>' +
-        '</div>';
-      }).join('');
+      피드전체아이템 = items;
+      피드예시모드   = items[0] && String(items[0].id).indexOf('ex') === 0;
+      피드렌더링();
     });
 }
 

@@ -202,7 +202,37 @@ var 예시피드 = [
     id: 'ex5', username: '느긋한 곰',
     optionA: '택시', optionB: '버스', winner: 'A', label: '택시',
     reasoning: '시간은 돈이에요. 오늘만큼은 편하게 가도 괜찮아요, 충분히 그럴 자격이 있어요!',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString()
+    createdAt: new Date(Date.now() - 1000 * 60 * 52).toISOString()
+  },
+  {
+    id: 'ex6', username: '엉뚱한 토끼',
+    optionA: '짜장면', optionB: '짬뽕', winner: 'B', label: '짬뽕',
+    reasoning: '인생은 짧아요. 얼큰한 국물 한 그릇이 오늘의 정답이에요!',
+    createdAt: new Date(Date.now() - 1000 * 60 * 18).toISOString()
+  },
+  {
+    id: 'ex7', username: '용감한 늑대',
+    optionA: '운동화', optionB: '구두', winner: 'A', label: '운동화',
+    reasoning: '편한 발이 행복한 하루를 만들어요. 오늘은 발이 이끄는 대로 가봐요.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 33).toISOString()
+  },
+  {
+    id: 'ex8', username: '행복한 판다',
+    optionA: '집밥', optionB: '배달음식', winner: 'A', label: '집밥',
+    reasoning: '오늘만큼은 내가 나를 챙겨주는 날이에요. 따뜻한 집밥이 최고예요.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 7).toISOString()
+  },
+  {
+    id: 'ex9', username: '설레는 코알라',
+    optionA: '영화관', optionB: '넷플릭스', winner: 'B', label: '넷플릭스',
+    reasoning: '이불 속에서 보는 영화가 제일 달콤하잖아요. 팝콘도 내 마음대로!',
+    createdAt: new Date(Date.now() - 1000 * 60 * 41).toISOString()
+  },
+  {
+    id: 'ex10', username: '귀여운 햄스터',
+    optionA: '아이스크림', optionB: '케이크', winner: 'A', label: '아이스크림',
+    reasoning: '달달한 건 다 좋지만, 오늘 같은 날엔 시원하게 녹아내리는 게 딱이에요.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 22).toISOString()
   }
 ];
 
@@ -215,7 +245,7 @@ app.get('/api/feed', async function(req, res) {
     var filtered = feed.filter(function(item) {
       return new Date(item.createdAt).getTime() > 한시간전;
     });
-    res.json(filtered.length > 0 ? filtered.slice(0, 30) : 예시피드);
+    res.json(filtered.length > 0 ? filtered : 예시피드);
   } catch (e) {
     res.json(예시피드);
   }
