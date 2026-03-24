@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>픽원 — 결과 공유</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .share-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 16px;
+      text-align: center;
+    }
+    .share-card {
+      background: rgba(255,255,255,0.92);
+      border-radius: 24px;
+      padding: 36px 28px;
+      width: 90%;
+      max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    }
+    .share-title {
+      font-size: 1rem;
+      color: #ff6b6b;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: 0.3px;
+    }
+    .share-vs {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .share-option {
+      flex: 1;
+      padding: 16px 10px;
+      border-radius: 14px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1f2937;
+      background: #f3f4f6;
+      border: 3px solid transparent;
+      position: relative;
+    }
+    .share-option.winner {
+      background: #fff9ec;
+      border-color: #ffd32a;
+      box-shadow: 0 0 20px rgba(255,211,42,0.35);
+    }
+    .share-option.loser {
+      opacity: 0.45;
+      filter: grayscale(50%);
+    }
+    .share-option-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #ff6b6b;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .share-crown {
+      font-size: 1.4rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .share-vs-badge {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: #9ca3af;
+      flex-shrink: 0;
+    }
+    .share-reasoning {
+      background: linear-gradient(135deg, #ff6b6b22, #feca5722);
+      border-radius: 12px;
+      padding: 16px 18px;
+      color: #374151;
+      line-height: 1.7;
+      font-size: 0.93rem;
+      text-align: left;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,107,107,0.2);
+    }
+    .share-go-btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #ff6b6b, #feca57);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255,107,107,0.3);
+    }
+    .share-go-btn:hover { opacity: 0.9; }
+    .error-msg {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="share-page">
+    <div id="content"></div>
+  </div>
+
+  <script>
+    var id = window.location.pathname.split('/share/')[1];
+
+    fetch('/api/share/' + id)
+      .then(function(res) {
+        if (!res.ok) throw new Error('not found');
+        return res.json();
+      })
+      .then(function(data) {
+        var isAWinner = data.winner === 'A';
+
+        document.title = '픽원 — ' + data.label + ' 승리!';
+
+        document.getElementById('content').innerHTML =
+          '<div class="share-card">' +
+            '<p class="share-title">🎯 픽원이 골랐어요!</p>' +
+            '<div class="share-vs">' +
+              '<div class="share-option ' + (isAWinner ? 'winner' : 'loser') + '">' +
+                '<div class="share-option-label">A</div>' +
+                (isAWinner ? '<span class="share-crown">👑</span>' : '') +
+                '<div>' + escapeHtml(data.optionA || '이미지 A') + '</div>' +
+              '</div>' +
+              '<div class="share-vs-badge">VS</div>' +
+              '<div class="share-option ' + (!isAWinner ? 'winner' : 'loser') + '">' +
+                '<div class="share-option-label">B</div>' +
+                (!isAWinner ? '<span class="share-crown">👑</span>' : '') +
+                '<div>' + escapeHtml(data.optionB || '이미지 B') + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="share-reasoning">' + escapeHtml(data.reasoning) + '</div>' +
+            '<a href="/" class="share-go-btn">나도 골라줘! →</a>' +
+          '</div>';
+      })
+      .catch(function() {
+        document.getElementById('content').innerHTML =
+          '<p class="error-msg">결과를 찾을 수 없어요.<br>링크가 만료됐거나 서버가 재시작됐을 수 있어요.</p>' +
+          '<br><a href="/" class="share-go-btn" style="margin-top:16px;">픽원 시작하기 →</a>';
+      });
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

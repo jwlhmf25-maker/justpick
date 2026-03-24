@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>픽원 — 로그인</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1 class="auth-logo">🎯 픽원</h1>
+      <p class="auth-sub">고민 끝! AI가 대신 골라줄게요</p>
+
+      <!-- 탭 -->
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active">로그인</button>
+        <button id="tab-register" class="auth-tab">회원가입</button>
+      </div>
+
+      <!-- 로그인 폼 -->
+      <form id="login-form" class="auth-form">
+        <div class="auth-field">
+          <label>아이디</label>
+          <input type="text" id="login-username" placeholder="아이디 입력" autocomplete="username">
+        </div>
+        <div class="auth-field">
+          <label>비밀번호</label>
+          <input type="password" id="login-password" placeholder="비밀번호 입력" autocomplete="current-password">
+        </div>
+        <div id="login-error" class="auth-error hidden"></div>
+        <button type="submit" class="auth-btn">로그인</button>
+      </form>
+
+      <!-- 회원가입 폼 -->
+      <form id="register-form" class="auth-form hidden">
+        <div class="auth-field">
+          <label>아이디</label>
+          <input type="text" id="reg-username" placeholder="2자 이상" autocomplete="username">
+        </div>
+        <div class="auth-field">
+          <label>비밀번호</label>
+          <input type="password" id="reg-password" placeholder="4자 이상" autocomplete="new-password">
+        </div>
+        <div id="register-error" class="auth-error hidden"></div>
+        <div id="register-success" class="auth-success hidden"></div>
+        <button type="submit" class="auth-btn">회원가입</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    var tabLogin    = document.getElementById('tab-login');
+    var tabRegister = document.getElementById('tab-register');
+    var loginForm   = document.getElementById('login-form');
+    var registerForm = document.getElementById('register-form');
+
+    tabLogin.addEventListener('click', function() {
+      tabLogin.classList.add('active');
+      tabRegister.classList.remove('active');
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+    });
+
+    tabRegister.addEventListener('click', function() {
+      tabRegister.classList.add('active');
+      tabLogin.classList.remove('active');
+      registerForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+    });
+
+    /* 로그인 */
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var username = document.getElementById('login-username').value.trim();
+      var password = document.getElementById('login-password').value.trim();
+      var errEl    = document.getElementById('login-error');
+
+      fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            window.location.href = '/';
+          } else {
+            errEl.textContent = data.error;
+            errEl.classList.remove('hidden');
+          }
+        })
+        .catch(function() {
+          errEl.textContent = '서버 오류가 발생했습니다.';
+          errEl.classList.remove('hidden');
+        });
+    });
+
+    /* 회원가입 */
+    registerForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var username = document.getElementById('reg-username').value.trim();
+      var password = document.getElementById('reg-password').value.trim();
+      var errEl    = document.getElementById('register-error');
+      var okEl     = document.getElementById('register-success');
+
+      errEl.classList.add('hidden');
+      okEl.classList.add('hidden');
+
+      fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            okEl.textContent = '가입 완료! 로그인해주세요.';
+            okEl.classList.remove('hidden');
+            registerForm.reset();
+            setTimeout(function() {
+              tabLogin.click();
+            }, 1200);
+          } else {
+            errEl.textContent = data.error;
+            errEl.classList.remove('hidden');
+          }
+        })
+        .catch(function() {
+          errEl.textContent = '서버 오류가 발생했습니다.';
+          errEl.classList.remove('hidden');
+        });
+    });
+  </script>
+</body>
+</html>
