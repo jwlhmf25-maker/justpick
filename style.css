@@ -48,14 +48,11 @@ body {
 
 .app-title {
   font-family: 'Syne', sans-serif;
-  font-size: 2.6rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.15);
-  background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.75));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.2);
 }
 
 .app-subtitle {
@@ -571,13 +568,10 @@ select option {
 .auth-logo {
   font-family: 'Syne', sans-serif;
   font-size: 2.4rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #ff6b6b, #feca57);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 700;
+  color: #ff6b6b;
   margin-bottom: 6px;
-  letter-spacing: -0.5px;
+  letter-spacing: 1px;
 }
 
 .auth-sub {
