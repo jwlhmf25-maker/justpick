@@ -62,12 +62,12 @@ body {
 }
 
 .app-tagline {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Pretendard', sans-serif;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.65);
   margin-top: 3px;
-  letter-spacing: 0.5px;
-  font-style: italic;
+  letter-spacing: 0.8px;
 }
 
 .header-auth {
