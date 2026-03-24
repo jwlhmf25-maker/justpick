@@ -499,6 +499,20 @@ function 픽실행(mode) {
 
   if (mode === 'text') {
     var ctx = textContextInput ? textContextInput.value.trim() : '';
+
+    /* 상황 입력 없으면 → 무료 랜덤 템플릿 */
+    if (!ctx) {
+      setTimeout(function() {
+        var result = 텍스트랜덤선택(a, b);
+        드라마틱공개(result.winner, result.reasoning);
+        isLoading = false;
+        textPickBtn.disabled  = false;
+        imagePickBtn.disabled = false;
+      }, 1200);
+      return;
+    }
+
+    /* 상황 입력 있으면 → Groq AI 호출 */
     텍스트AI선택(a, b, ctx)
       .then(function(res) {
         if (!res.ok) {
