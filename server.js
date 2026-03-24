@@ -1,10 +1,11 @@
 require('dotenv').config();
 
-var express = require('express');
-var session = require('express-session');
-var bcrypt  = require('bcryptjs');
-var fs      = require('fs');
-var path    = require('path');
+var express   = require('express');
+var session   = require('express-session');
+var rateLimit = require('express-rate-limit');
+var bcrypt    = require('bcryptjs');
+var fs        = require('fs');
+var path      = require('path');
 
 var app = express();
 
@@ -15,8 +16,29 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'pickone-secret-key',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 }
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24,
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production'
+  }
 }));
+
+var loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: '로그인 시도가 너무 많습니다. 15분 후 다시 시도해주세요.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+var registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: '회원가입 시도가 너무 많습니다. 15분 후 다시 시도해주세요.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 /* ── 랜덤 닉네임 생성 ── */
 var 형용사 = ['즐거운','배고픈','신나는','졸린','용감한','수줍은','엉뚱한','당당한','귀여운','무서운','느긋한','바쁜','행복한','심심한','설레는'];
@@ -145,14 +167,17 @@ app.get('/share/:id', async function(req, res) {
 
 /* ── 인증 API ── */
 
-app.post('/auth/register', async function(req, res) {
+app.post('/auth/register', registerLimiter, async function(req, res) {
   try {
     var username = (req.body.username || '').trim();
     var password = (req.body.password || '').trim();
 
     if (!username || !password)  return res.status(400).json({ error: '아이디와 비밀번호를 입력해주세요.' });
     if (username.length < 4)     return res.status(400).json({ error: '아이디는 4자 이상이어야 합니다.' });
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) return res.status(400).json({ error: '아이디는 영문, 숫자, 언더스코어(_)만 사용 가능합니다.' });
     if (password.length < 8)     return res.status(400).json({ error: '비밀번호는 8자 이상이어야 합니다.' });
+    if (!/[0-9]/.test(password) && !/[^a-zA-Z0-9]/.test(password))
+      return res.status(400).json({ error: '비밀번호에 숫자 또는 특수문자를 1개 이상 포함해주세요.' });
 
     var users = await db읽기('users', USERS_FILE, []);
     if (users.find(function(u) { return u.username === username; }))
@@ -168,7 +193,7 @@ app.post('/auth/register', async function(req, res) {
   }
 });
 
-app.post('/auth/login', async function(req, res) {
+app.post('/auth/login', loginLimiter, async function(req, res) {
   try {
     var username = (req.body.username || '').trim();
     var password = (req.body.password || '').trim();
