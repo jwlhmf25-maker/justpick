@@ -61,6 +61,15 @@ body {
   margin-top: 2px;
 }
 
+.app-tagline {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+  font-style: italic;
+}
+
 .header-auth {
   display: flex;
   align-items: center;

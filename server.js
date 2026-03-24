@@ -78,35 +78,46 @@ app.get('/share/:id', function(req, res) {
 /* ── 인증 API ── */
 
 app.post('/auth/register', function(req, res) {
-  var username = (req.body.username || '').trim();
-  var password = (req.body.password || '').trim();
+  try {
+    var username = (req.body.username || '').trim();
+    var password = (req.body.password || '').trim();
 
-  if (!username || !password)  return res.status(400).json({ error: '아이디와 비밀번호를 입력해주세요.' });
-  if (username.length < 2)     return res.status(400).json({ error: '아이디는 2자 이상이어야 합니다.' });
-  if (password.length < 4)     return res.status(400).json({ error: '비밀번호는 4자 이상이어야 합니다.' });
+    if (!username || !password)  return res.status(400).json({ error: '아이디와 비밀번호를 입력해주세요.' });
+    if (username.length < 2)     return res.status(400).json({ error: '아이디는 2자 이상이어야 합니다.' });
+    if (password.length < 4)     return res.status(400).json({ error: '비밀번호는 4자 이상이어야 합니다.' });
 
-  var users = 파일읽기(USERS_FILE, []);
-  if (users.find(function(u) { return u.username === username; }))
-    return res.status(400).json({ error: '이미 사용 중인 아이디입니다.' });
+    var users = 파일읽기(USERS_FILE, []);
+    if (users.find(function(u) { return u.username === username; }))
+      return res.status(400).json({ error: '이미 사용 중인 아이디입니다.' });
 
-  users.push({ id: Date.now().toString(), username: username, password: bcrypt.hashSync(password, 10) });
-  파일저장(USERS_FILE, users);
-  res.json({ ok: true });
+    var hashed = bcrypt.hashSync(password, 10);
+    users.push({ id: Date.now().toString(), username: username, password: hashed });
+    파일저장(USERS_FILE, users);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('회원가입 오류:', e);
+    res.status(500).json({ error: '회원가입 처리 중 오류가 발생했습니다: ' + e.message });
+  }
 });
 
 app.post('/auth/login', function(req, res) {
-  var username = (req.body.username || '').trim();
-  var password = (req.body.password || '').trim();
+  try {
+    var username = (req.body.username || '').trim();
+    var password = (req.body.password || '').trim();
 
-  var users = 파일읽기(USERS_FILE, []);
-  var user  = users.find(function(u) { return u.username === username; });
+    var users = 파일읽기(USERS_FILE, []);
+    var user  = users.find(function(u) { return u.username === username; });
 
-  if (!user || !bcrypt.compareSync(password, user.password))
-    return res.status(401).json({ error: '아이디 또는 비밀번호가 틀렸습니다.' });
+    if (!user || !bcrypt.compareSync(password, user.password))
+      return res.status(401).json({ error: '아이디 또는 비밀번호가 틀렸습니다.' });
 
-  req.session.userId   = user.id;
-  req.session.username = user.username;
-  res.json({ ok: true, username: user.username });
+    req.session.userId   = user.id;
+    req.session.username = user.username;
+    res.json({ ok: true, username: user.username });
+  } catch (e) {
+    console.error('로그인 오류:', e);
+    res.status(500).json({ error: '로그인 처리 중 오류가 발생했습니다: ' + e.message });
+  }
 });
 
 app.post('/auth/logout', function(req, res) {
