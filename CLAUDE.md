@@ -1,76 +1,147 @@
 # JustPick — 프로젝트 가이드
 
 ## 프로젝트 개요
-두 가지 선택지 중 하나를 골라주는 웹앱.
-- **텍스트 모드**: 두 선택지 입력 → 랜덤 선택 + 재밌는 이유 제공 (API 불필요)
-- **이미지 모드**: 사진 2장 업로드 + 날씨/상황 선택 → Claude Vision 추천 (로그인 필요)
-- **커뮤니티 피드**: 다른 사람들의 고민을 1시간 동안 공유
-- **결과 공유**: 공유 링크 생성
-- **선택적 로그인**: 회원가입 없이도 텍스트 모드 사용 가능
-- **랜덤 닉네임**: 비로그인 사용자도 "즐거운 호랑이" 같은 닉네임 자동 부여
+두 가지 선택지 중 하나를 골라주는 결정 도우미 웹앱.
+
+### 핵심 기능
+- **텍스트 모드**: 선택지 A/B 입력 → 랜덤 선택 + 40개 템플릿 중 랜덤 코멘트 (API 불필요)
+- **이미지 모드**: 사진 2장 업로드 + 날씨/상황 컨텍스트 → Claude Vision AI 추천 (로그인 필요)
+- **결과 배너**: "A (xxx) 골랐어!" / "결정!" / "이거야!" 중 랜덤 표시
+- **결과 공유**: 공유 링크 생성 + 카카오톡 공유 (KakaoTalk SDK)
+- **커뮤니티 피드**: 다른 사람들의 고민 1시간 TTL, 기본 5개 + 더보기
+- **로그인/회원가입**: 아이디 4자 이상, 비밀번호 8자 이상
+
+### 로그인 사용자 전용
+- **좌측 사이드바** (모바일: 상단 가로 탭): 3개 메뉴 전환
+  - ✏️ 고민 입력 — 텍스트/이미지 모드
+  - 📋 내 히스토리 — 내가 골라줘한 기록 (최대 50개, 시간 제한 없음)
+  - 🔥 다른 사람들의 고민 — 커뮤니티 피드
+- **헤더**: `{username} 님` + 로그아웃 버튼 표시
+- 비로그인 시: 로그인/회원가입 버튼 + 하단 피드 기본 표시
+
+### 닉네임
+- 비로그인 사용자: 세션에 "즐거운 호랑이" 형태 랜덤 닉네임 자동 부여
+- 동물별 이모지 매핑 (🐯 호랑이, 🦁 사자, 🐰 토끼 등)
+
+---
 
 ## 배포
-- **운영**: Vercel (https://justpick.vercel.app)
-- **로컬**: Docker (`docker compose up --build`) → http://localhost:3000
+- **운영**: Vercel — https://justpick.vercel.app
 - **GitHub**: https://github.com/jwlhmf25-maker/justpick
-- Vercel은 main 브랜치 push 시 자동 배포
+- **로컬**: Docker (`docker compose up --build`) → http://localhost:3000
+- Vercel은 `main` 브랜치 push 시 자동 배포
+
+```bash
+git add 파일명
+git commit -m "커밋 메시지"
+git push origin main
+# → Vercel 자동 배포
+```
+
+---
 
 ## 기술 스택
-- **Frontend**: Vanilla HTML / CSS / JavaScript (ES5, var 선언, 한글 주석)
-- **Backend**: Node.js + Express (`server.js`)
-- **인증**: express-session + bcryptjs
-- **DB**: Upstash Redis (Vercel KV) — 환경변수 `KV_REST_API_URL`, `KV_REST_API_TOKEN`
-- **DB 폴백**: JSON 파일 (`data/` 폴더) — 로컬/Docker 환경용
-- **AI**: Anthropic Claude API (`ANTHROPIC_API_KEY`) — 이미지 모드만 사용
-- **폰트**: Syne (로고), Pretendard (본문/한국어)
+| 영역 | 기술 |
+|------|------|
+| Frontend | Vanilla HTML / CSS / JavaScript (ES5) |
+| Backend | Node.js + Express (`server.js`) |
+| 인증 | express-session + bcryptjs |
+| DB (운영) | Upstash Redis (Vercel KV 마켓플레이스) |
+| DB (로컬) | JSON 파일 (`data/` 폴더) 자동 폴백 |
+| AI | Anthropic Claude API — 이미지 모드만 |
+| 폰트 | Syne (로고), Pretendard (본문) |
+
+---
 
 ## 파일 구조
 ```
 pickone/
-├── index.html       # 메인 페이지 (선택 화면 + 피드)
-├── login.html       # 로그인 / 회원가입 페이지
-├── share.html       # 결과 공유 페이지
-├── style.css        # 전체 스타일 (코랄/오렌지 그라디언트 테마)
-├── main.js          # 프론트엔드 로직
-├── server.js        # Express 서버 (API, 인증, 피드, Redis 연동)
+├── index.html         # 메인 페이지 (사이드바 + 3개 패널)
+├── login.html         # 로그인 / 회원가입 페이지 (탭 전환)
+├── share.html         # 결과 공유 페이지
+├── style.css          # 전체 스타일 (코랄/노랑/민트 그라디언트, 어두운 텍스트)
+├── main.js            # 프론트엔드 로직
+├── server.js          # Express 서버 (API, 인증, 피드, Redis)
+├── og-image.svg       # OG 메타태그용 이미지
 ├── package.json
 ├── Dockerfile
 ├── docker-compose.yml
-├── .env             # 로컬용 (git 제외)
+├── .env               # 로컬용 (git 제외)
 └── .env.example
 ```
+
+---
 
 ## 환경변수
 ```
 ANTHROPIC_API_KEY=sk-ant-...       # Claude API (이미지 모드)
-SESSION_SECRET=임의의_문자열
+SESSION_SECRET=임의의_문자열        # 세션 암호화
 KV_REST_API_URL=https://...        # Upstash Redis (Vercel KV)
 KV_REST_API_TOKEN=...              # Upstash Redis (Vercel KV)
 PORT=3000                          # 선택 (기본값 3000)
 ```
 
-## 코딩 컨벤션
-- ES5 스타일 (`var`, named function)
-- 주석은 한글
-- `hidden` 클래스로 DOM 가시성 토글
-- 함수명 한글 가능 (예: `피드저장`, `랜덤닉네임`)
+Vercel에서는 Storage 탭 → KV 연동 시 자동으로 `KV_REST_API_URL`, `KV_REST_API_TOKEN` 환경변수 생성됨.
+
+---
 
 ## 주요 API 엔드포인트
 | 메서드 | 경로 | 설명 | 인증 |
 |--------|------|------|------|
 | GET | `/api/feed` | 피드 조회 (1시간 TTL 필터) | 불필요 |
-| POST | `/api/feed` | 피드 저장 | 불필요 |
-| POST | `/api/share` | 공유 링크 생성 | 불필요 |
+| POST | `/api/feed` | 피드 저장 + 로그인 유저면 히스토리도 저장 | 불필요 |
+| GET | `/api/my-history?username=` | 내 히스토리 조회 | 불필요 (username 쿼리 필요) |
+| POST | `/api/share` | 공유 링크 생성 (7일 TTL) | 불필요 |
 | GET | `/api/share/:id` | 공유 결과 조회 | 불필요 |
 | POST | `/api/pick` | Claude AI 이미지 분석 프록시 | **필요** |
-| POST | `/auth/register` | 회원가입 | 불필요 |
+| POST | `/auth/register` | 회원가입 (아이디 4자↑, 비밀번호 8자↑) | 불필요 |
 | POST | `/auth/login` | 로그인 | 불필요 |
+| POST | `/auth/logout` | 로그아웃 | 불필요 |
+| GET | `/auth/me` | 현재 로그인 사용자 확인 | 불필요 |
+
+---
 
 ## DB 동작 방식
 - `KV_REST_API_URL` + `KV_REST_API_TOKEN` 있으면 → Upstash Redis 사용
-- 없으면 → `data/` 폴더 JSON 파일 폴백 (로컬/Docker)
-- Redis 키: `feed`, `users`, `share:{id}`
-- 피드는 최대 100개 보관, GET 시 1시간 지난 항목 자동 필터링
+- 없으면 → `data/` 폴더 JSON 파일 자동 폴백 (로컬/Docker)
+
+### Redis 키 구조
+| 키 | 내용 | TTL |
+|----|------|-----|
+| `feed` | 전체 피드 배열 (최대 100개) | 없음 (GET 시 1시간 필터링) |
+| `users` | 유저 배열 (id, username, password 해시) | 없음 |
+| `share:{id}` | 공유 결과 | 7일 |
+| `history:{userId}` | 유저별 히스토리 배열 (최대 50개) | 없음 |
+
+### Vercel 서버리스 세션 문제 대응
+Vercel에서 express-session의 MemoryStore는 콜드 스타트 시 세션이 유실됨.
+- `POST /api/feed`: body에 `username` 포함 → users DB 조회로 userId 확보 후 히스토리 저장
+- `GET /api/my-history`: query에 `username` 포함 → users DB 조회로 userId 확보
+
+---
+
+## 코딩 컨벤션
+- **ES5 스타일**: `var` 선언, named function (화살표 함수 미사용)
+- **한글 함수명/주석**: `피드저장()`, `랜덤닉네임()`, `헤더업데이트()` 등
+- **DOM 가시성**: `hidden` CSS 클래스로 토글 (`display: none !important`)
+- **텍스트 이스케이프**: XSS 방지를 위해 `텍스트이스케이프()` 함수 사용
+- **피드 카드 재사용**: `피드카드HTML()` 함수를 피드/히스토리 모두에서 사용
+
+---
+
+## 주요 프론트엔드 함수 (main.js)
+| 함수 | 역할 |
+|------|------|
+| `헤더업데이트(username)` | 로그인 상태에 따라 헤더 + 사이드바 전환 |
+| `메뉴전환(panelId)` | 사이드바 패널 전환 + 활성 메뉴 하이라이트 |
+| `피드저장(...)` | POST /api/feed 호출 (body에 username 포함) |
+| `피드로드()` | GET /api/feed → 렌더링 |
+| `히스토리로드()` | GET /api/my-history?username= → 렌더링 |
+| `피드렌더링()` | 로그인 여부에 따라 올바른 DOM 타겟에 출력 |
+| `텍스트랜덤선택(a, b)` | 40개 템플릿 중 랜덤 선택, {W}/{L} 치환 |
+| `드라마틱공개(winner, reasoning)` | 결과 애니메이션 + 배너 + 피드 자동 저장 |
+
+---
 
 ## 로컬 개발
 ```bash
@@ -80,12 +151,4 @@ docker compose up --build
 # 직접 실행 (Node.js 필요)
 npm install
 npm start
-```
-
-## Vercel 배포
-```bash
-git add -A
-git commit -m "커밋 메시지"
-git push origin main
-# → Vercel 자동 배포
 ```
