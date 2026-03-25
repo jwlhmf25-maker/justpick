@@ -400,13 +400,36 @@ function 드라마틱공개(winner, reasoning) {
 
 /* ── 피드 ── */
 
+function 로컬리액션가져오기() {
+  try { return JSON.parse(localStorage.getItem('justpick_reactions') || '[]'); }
+  catch (e) { return []; }
+}
+
+function 로컬리액션저장(feedId, reacted) {
+  var list = 로컬리액션가져오기();
+  if (reacted) {
+    if (list.indexOf(feedId) === -1) list.push(feedId);
+  } else {
+    list = list.filter(function(id) { return id !== feedId; });
+  }
+  localStorage.setItem('justpick_reactions', JSON.stringify(list));
+}
+
 function 피드카드HTML(item) {
   var isA       = item.winner === 'A';
   var isExample = item.id && item.id.toString().startsWith('ex');
   var count     = (item.reactions && item.reactions.same) || 0;
+
+  var 이미리액션 = false;
+  if (currentUser && item.reactors && item.reactors.indexOf(currentUser) !== -1) {
+    이미리액션 = true;
+  } else if (!currentUser) {
+    이미리액션 = 로컬리액션가져오기().indexOf(String(item.id)) !== -1;
+  }
+
   var 리액션버튼 = isExample
     ? '<button class="reaction-btn" disabled title="예시 피드예요">🤔 나도 이거 고민!</button>'
-    : '<button class="reaction-btn" data-feed-id="' + 텍스트이스케이프(item.id) + '">' +
+    : '<button class="reaction-btn' + (이미리액션 ? ' reacted' : '') + '" data-feed-id="' + 텍스트이스케이프(item.id) + '">' +
         '🤔 나도 이거 고민!' +
         (count > 0 ? ' <span class="reaction-count">' + count + '</span>' : '') +
       '</button>';
@@ -444,6 +467,7 @@ function 리액션이벤트등록(container) {
           if (!data.ok) { btn.disabled = false; return; }
           /* 리액션 상태 + 카운트 업데이트 */
           btn.classList.toggle('reacted', data.reacted);
+          if (!currentUser) 로컬리액션저장(feedId, data.reacted);
           var countEl = btn.querySelector('.reaction-count');
           if (data.count > 0) {
             if (countEl) {
