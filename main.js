@@ -421,18 +421,16 @@ function 피드카드HTML(item) {
   var count     = (item.reactions && item.reactions.same) || 0;
 
   var 이미리액션 = false;
-  if (currentUser && item.reactors && item.reactors.indexOf(currentUser) !== -1) {
+  if (!isExample && currentUser && item.reactors && item.reactors.indexOf(currentUser) !== -1) {
     이미리액션 = true;
-  } else if (!currentUser) {
+  } else {
     이미리액션 = 로컬리액션가져오기().indexOf(String(item.id)) !== -1;
   }
 
-  var 리액션버튼 = isExample
-    ? '<button class="reaction-btn" disabled title="예시 피드예요">🤔 나도 이거 고민!</button>'
-    : '<button class="reaction-btn' + (이미리액션 ? ' reacted' : '') + '" data-feed-id="' + 텍스트이스케이프(item.id) + '">' +
-        '🤔 나도 이거 고민!' +
-        (count > 0 ? ' <span class="reaction-count">' + count + '</span>' : '') +
-      '</button>';
+  var 리액션버튼 = '<button class="reaction-btn' + (이미리액션 ? ' reacted' : '') + '" data-feed-id="' + 텍스트이스케이프(item.id) + '">' +
+      '🤔 나도 이거 고민!' +
+      (count > 0 ? ' <span class="reaction-count">' + count + '</span>' : '') +
+    '</button>';
   return '<div class="feed-card">' +
     '<div class="feed-card-header">' +
       '<span class="feed-card-user">' + 닉네임이모지(item.username) + ' ' + 텍스트이스케이프(item.username) + '</span>' +
@@ -456,6 +454,15 @@ function 리액션이벤트등록(container) {
       var btn    = this;
       var feedId = btn.getAttribute('data-feed-id');
       btn.disabled = true;
+
+      /* 예시 피드는 API 없이 로컬에서만 처리 */
+      if (feedId.indexOf('ex') === 0) {
+        var isReacted = btn.classList.contains('reacted');
+        btn.classList.toggle('reacted', !isReacted);
+        로컬리액션저장(feedId, !isReacted);
+        btn.disabled = false;
+        return;
+      }
 
       fetch('/api/feed/' + encodeURIComponent(feedId) + '/react', {
         method: 'POST',
