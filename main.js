@@ -500,10 +500,7 @@ function 피드렌더링() {
 
   /* 더보기 버튼 */
   if (피드표시개수 < 피드전체아이템.length) {
-    var 남은개수 = 피드전체아이템.length - 피드표시개수;
-    var 버튼텍스트 = 피드예시모드
-      ? '더보기 (' + 남은개수 + '개)'
-      : '더보기';
+    var 버튼텍스트 = '더보기';
     html += '<button class="feed-more-btn feed-more-action">' + 버튼텍스트 + '</button>';
   }
 
