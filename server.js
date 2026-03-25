@@ -358,6 +358,48 @@ app.post('/api/feed', async function(req, res) {
   }
 });
 
+/* ── 피드 리액션 API ── */
+
+/* POST /api/feed/:id/react — 나도 이거 고민! 토글 */
+app.post('/api/feed/:id/react', async function(req, res) {
+  try {
+    var feedId   = req.params.id;
+    var reactor  = (req.session && req.session.username) || req.session.nickname;
+
+    /* 예시 피드(ex로 시작)는 리액션 불가 */
+    if (feedId.startsWith('ex')) {
+      return res.status(400).json({ error: '예시 피드에는 리액션할 수 없어요.' });
+    }
+
+    var feed = await db읽기('feed', FEED_FILE, []);
+    var idx  = feed.findIndex(function(f) { return f.id === feedId; });
+    if (idx === -1) return res.status(404).json({ error: '피드 항목을 찾을 수 없어요.' });
+
+    var item = feed[idx];
+    if (!item.reactions) item.reactions = { same: 0 };
+    if (!item.reactors)  item.reactors  = [];
+
+    var alreadyReacted = item.reactors.indexOf(reactor) !== -1;
+    if (alreadyReacted) {
+      /* 토글 취소 */
+      item.reactors = item.reactors.filter(function(r) { return r !== reactor; });
+      item.reactions.same = Math.max(0, item.reactions.same - 1);
+    } else {
+      /* 리액션 추가 */
+      item.reactors.push(reactor);
+      item.reactions.same += 1;
+    }
+
+    feed[idx] = item;
+    await db저장('feed', FEED_FILE, feed);
+
+    res.json({ ok: true, count: item.reactions.same, reacted: !alreadyReacted });
+  } catch (e) {
+    console.error('리액션 오류:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 /* ── 내 히스토리 API ── */
 
 app.get('/api/my-history', async function(req, res) {

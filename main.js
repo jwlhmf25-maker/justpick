@@ -115,6 +115,7 @@ function 히스토리로드() {
         return;
       }
       historyList.innerHTML = items.map(피드카드HTML).join('');
+      리액션이벤트등록(historyList);
     })
     .catch(function() {
       historyList.innerHTML = '<p class="feed-empty">히스토리를 불러올 수 없어요.</p>';
@@ -400,7 +401,15 @@ function 드라마틱공개(winner, reasoning) {
 /* ── 피드 ── */
 
 function 피드카드HTML(item) {
-  var isA = item.winner === 'A';
+  var isA       = item.winner === 'A';
+  var isExample = item.id && item.id.toString().startsWith('ex');
+  var count     = (item.reactions && item.reactions.same) || 0;
+  var 리액션버튼 = isExample
+    ? '<button class="reaction-btn" disabled title="예시 피드예요">🤔 나도 이거 고민!</button>'
+    : '<button class="reaction-btn" data-feed-id="' + 텍스트이스케이프(item.id) + '">' +
+        '🤔 나도 이거 고민!' +
+        (count > 0 ? ' <span class="reaction-count">' + count + '</span>' : '') +
+      '</button>';
   return '<div class="feed-card">' +
     '<div class="feed-card-header">' +
       '<span class="feed-card-user">' + 닉네임이모지(item.username) + ' ' + 텍스트이스케이프(item.username) + '</span>' +
@@ -412,7 +421,47 @@ function 피드카드HTML(item) {
       '<div class="feed-option ' + (!isA ? 'winner' : '') + '">' + 텍스트이스케이프(item.optionB) + '</div>' +
     '</div>' +
     '<div class="feed-reasoning">"' + 텍스트이스케이프(item.reasoning) + '"</div>' +
+    '<div class="feed-reactions">' + 리액션버튼 + '</div>' +
   '</div>';
+}
+
+/* ── 리액션 버튼 클릭 처리 ── */
+function 리액션이벤트등록(container) {
+  var btns = container.querySelectorAll('.reaction-btn[data-feed-id]');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener('click', function() {
+      var btn    = this;
+      var feedId = btn.getAttribute('data-feed-id');
+      btn.disabled = true;
+
+      fetch('/api/feed/' + encodeURIComponent(feedId) + '/react', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (!data.ok) { btn.disabled = false; return; }
+          /* 리액션 상태 + 카운트 업데이트 */
+          btn.classList.toggle('reacted', data.reacted);
+          var countEl = btn.querySelector('.reaction-count');
+          if (data.count > 0) {
+            if (countEl) {
+              countEl.textContent = data.count;
+            } else {
+              var span = document.createElement('span');
+              span.className = 'reaction-count';
+              span.textContent = data.count;
+              btn.appendChild(span);
+            }
+          } else if (countEl) {
+            countEl.remove();
+          }
+          btn.disabled = false;
+        })
+        .catch(function() { btn.disabled = false; });
+    });
+  }
 }
 
 function 피드렌더링() {
@@ -429,7 +478,10 @@ function 피드렌더링() {
 
   /* 로그인 상태면 panel-feed 안의 feed-list에, 아니면 default에 렌더링 */
   var target = currentUser ? feedList : feedListDefault;
-  if (target) target.innerHTML = html;
+  if (target) {
+    target.innerHTML = html;
+    리액션이벤트등록(target);
+  }
   /* 양쪽 다 있으면 둘 다 업데이트 */
   if (currentUser && feedListDefault) feedListDefault.innerHTML = '';
 

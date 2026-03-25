@@ -999,6 +999,46 @@ select option {
   line-height: 1.6;
 }
 
+/* ── 피드 리액션 ── */
+.feed-reactions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1.5px solid rgba(255,255,255,0.7);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.3);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  backdrop-filter: blur(4px);
+}
+
+.reaction-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.6);
+  border-color: #ffd32a;
+  transform: scale(1.05);
+}
+
+.reaction-btn.reacted {
+  background: rgba(255, 211, 42, 0.35);
+  border-color: #ffd32a;
+  color: #b45309;
+}
+
+.reaction-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* ── 반응형 ── */
 
 /* 모바일: 사이드바 → 가로 탭 */
